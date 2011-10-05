@@ -1,0 +1,39 @@
+.box {
+  background-color:#232323;
+  border:1px solid #343434;
+  float:left;
+  height:188px;
+  margin:5px;
+  width:188px;
+  position:relative;
+
+  .topbar {
+  }
+
+  .title {
+    font-size:16px;
+    float:left;
+    margin: 5px;
+  }
+
+  .type {
+    font-size:11px;
+    padding:3px;
+    text-align:center;
+  }
+
+  .status {
+  }
+}
+
+.down {
+  background-color: #CB3916;
+}
+
+.up, .down, .unknown {
+  color:#ffffff;
+}
+
+.up {
+  background-color: #63C716;
+}

@@ -1,0 +1,82 @@
+@import "compass/reset";
+@import "compass/css3/border-radius";
+@import "compass/css3/text-shadow";
+
+$active-color: #C7A315;
+$border-color: #343434;
+$font-family : 'Arial', 'Helvetica', 'sans-serif';
+
+
+@import "topbar";
+@import "fixed_boxes";
+@import "boxes";
+
+
+html {
+  margin:0;
+  padding:0;
+}
+
+body {
+  background-color:#101010;
+  color:#cccccc;
+  font-family: $font-family;
+  font-size:13px;
+}
+
+.wrapper {
+  /*margin: 0 auto;*/
+  /*width: 1000px;*/
+}
+
+
+
+h2 {
+  @include text-shadow( 0px 0px 2px #000000 );
+
+  border-bottom: 1px solid $border-color;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight:bold;
+  padding-bottom:10px;
+  margin-bottom:5px;
+}
+
+.clearer {
+  clear: both;
+  height:0px;
+}
+
+.worker {
+  @include border-radius(3px); 
+
+  background-color:#212121;
+  border:1px solid $border-color;
+  float:left;
+  padding:10px;
+  margin:5px;
+}
+
+
+
+#content {
+  margin: 5px;
+
+  li {
+  }
+}
+
+#nav {
+  float:right;
+  list-style: none;
+
+  li { 
+    float:left;
+    margin: 5px 5px 0px 5px;
+    padding: 5px 5px;
+  }
+
+  li.active {
+    background-color: $active-color;
+  }
+}

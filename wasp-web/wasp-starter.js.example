@@ -1,0 +1,26 @@
+var server = require('wasp-web);
+
+var cfg = {
+  workers: [
+    // Each workers is a server monitored by a Wasp-Worker, Wasp-Web need the Ip address for the server and access to port 4545
+    // Note that auth token is not implemented yet
+    {
+      ip: '192.65.32.45',
+      authToken: 'abcdefghijklmnopqrstuvwxyz1234567890',
+    },
+    {
+      ip: 'localhost',
+      authToken: '',
+    }
+  ],
+  /*
+   * Redis Database connections settings
+   */
+  redis: {
+    host: "localhost",
+    port: "6379",
+    expire: 0
+  }
+};
+
+server.start(cfg);

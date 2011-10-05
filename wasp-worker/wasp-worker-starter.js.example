@@ -1,0 +1,62 @@
+var daemon = require('wasp-worker.js');
+
+// Register all the reporter for your watchers, you can register your own lib too
+daemon.registerWatcherType('wasp-worker/core-watchers-lib/http');
+daemon.registerWatcherType('wasp-worker/core-watchers-lib/process');
+daemon.registerWatcherType('wasp-worker/core-watchers-lib/redis');
+
+
+var conf = {
+  /**
+   * this token should be long enough and unique to prevent people to access the REST interface exposed by WASP
+   * !!! Not used at the moment.
+   */
+  authToken : 'abcdefghijklmnopqrstuvwxyz1234567890',
+
+  /* List of items to watch, note that every type of process have specific parameters.
+   * 
+   * key will be the id of the item
+   *  @type : the Watcher Type 
+   *  @start & stop cmd : shell command to start & stop the process
+   *  @timer : the time between two report
+   */
+  watchers: {
+    redis: {
+      type: 'redis',
+      startCmd: '/path/to/redis/redis-server /path/to/redis/config/file/redis.conf',
+      stopCmd: 'kill -9 `pidof redis-server`',
+      timer: 20000
+    },
+    webapplication: {
+      type: 'process',
+      pidFile: '/path/to/dummy/server/pid/file/server.pid', // i.e. for example a rails webserver, like /my/project/temps/pid/server.pid
+      startCmd: 'cmd/to start',
+      stopCmd: 'kill -9 `cat /path/to/dummy/server/pid/file/server.pid`', //Used a lot
+      timer: 10000,
+    },
+    nginx: {
+      type: 'http', // Reach a location to find out if the server is down
+      // Specific for http process: host, port and location to reach.
+      host: 'localhost',
+      port: '80',
+      location: '/',
+      startCmd: 'cmd/to start',
+      stopCmd: 'kill -9 `cat /path/to/dummy/server/pid/file/server.pid`'
+    }
+  },
+  server :{
+    name: 'My server name'
+  },
+  
+  /**
+   * Redis Database connections settings
+   */
+  redis: {
+    host: 'localhost',
+    port: '6379',
+    expire: 0
+  }
+};
+
+
+daemon.start(conf);

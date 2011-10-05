@@ -1,0 +1,17 @@
+log/*.log
+.DS_Store
+.project
+**/.DS_Store
+*.BACKUP.*
+*.BASE.*
+*.REMOTE.*
+*.ORIG.*
+*.LOCAL.*
+*.orig
+dump.rdb
+wasp-worker/wasp-worker-starter.js
+wasp-web/wasp-starter.js
+node_modules
+*.sass-cache
+*.log
+*.pid

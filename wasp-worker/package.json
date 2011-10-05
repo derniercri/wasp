@@ -1,0 +1,43 @@
+  {
+  "name" : "wasp-worker",
+  "description" : "Wasp daemon to be installed on each monitored host. Has to be used with wasp monitoring tool/",
+  "version" : "0.1.3",
+  "main" : "./wasp-worker.js",
+  "contributors" : [
+    {
+      "name" : "Robin Komiwes",
+      "email": "robin.komiwes@gmail.com",
+      "url" : "http://twitter.com/robinkomiwes" 
+    },
+    {
+      "name" : "Maxime Brazeilles",
+      "email": "maxime.brazeilles@gmail.com",
+      "url" : "" 
+    }
+	],
+  "repository" : {
+    "type" : "git", 
+    "url" : "git@github.com:nectify/wasp-worker.git"
+  },
+  "bugs" : { 
+    "web" : "http://github.com/nectify/wasp-worker/issues"
+  },
+  "os" : [ "linux", "osx" ],
+  "directories" : { 
+    "lib" : "./lib",
+    "core-watchers-lib" : "./core-watchers-lib"
+  }, 
+  "engines" : { 
+    "node" : ">=0.4"
+  },
+  "dependencies" : { 
+    "redis" : "*", 
+    "winston" : "*" 
+  },
+  "licenses" : [
+    { 
+      "type" : "Apache License, Version 2.0",
+      "url" : "http://www.apache.org/licenses/LICENSE-2.0"
+    }   
+  ]
+}
