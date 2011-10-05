@@ -27,24 +27,24 @@
 - http://my-worker/
 root : get worker's metadata and list all available watchers id and their associated refresh time
   response sample: 
-```javascript
-{
-  "name":"my-worker",
-  "timer":5000,
-  "watchers": {
 
-    "nginx": {
-      "type":"http",
-      "timer":5000
-    },
+        {
+          "name":"my-worker",
+          "timer":5000,
+          "watchers": {
 
-    "resque": {
-      "type":"process",
-      "timer":5000
-    }
-  }
-}
-```
+            "nginx": {
+              "type":"http",
+              "timer":5000
+            },
+
+            "resque": {
+              "type":"process",
+              "timer":5000
+            }
+          }
+        }
+
  
 This means that the following routes are also exposed for both of them
  
@@ -109,7 +109,7 @@ Not that it's not going to work at all, it just hasn't be tested at all.
 
   Watchers will monitor a process, you can use a specific plugin for specific behavior.
   If i want to monitor nginx, i want to know if i can reach an URL like "/".
-  See wasp-worker-starter.js.example for more information on Watcher's type.
+  See wasp-worker-starter.js.example for more informations on Watcher's type.
 
 ### Mixins
   Coming soon
@@ -128,6 +128,6 @@ Not that it's not going to work at all, it just hasn't be tested at all.
 
     /%source_dir%/node wasp-starter.js
   
-  You can also use "npm link" see http://npmjs.org/doc/link.html for more information.
+  You can also use "npm link" see http://npmjs.org/doc/link.html for more informations.
 
   Note that each time you do a modification, you need to restart wasp.
