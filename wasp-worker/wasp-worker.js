@@ -5,6 +5,8 @@ var utils = require('./lib/utils.js'),
   redis = require('redis'),
   router = require('./lib/router.js');
 
+global.mixinTypes = {};
+
 var watcherTypes = {},
   watchers = {},
   server = {},
@@ -26,6 +28,14 @@ exports.registerWatcherType = function( watcher ) {
   var watcherType = require( watcher );
 
   watcherTypes[ watcherType.prototype.type ] = watcherType;
+}
+
+exports.registerMixinType = function( mixin ) {
+  utils.log( "Registering Mixin: " + mixin , module);
+
+  var mixinType = require( mixin );
+
+  mixinTypes[ mixinType.prototype.type ] = mixinType;
 }
 
 // Root : Return all processes in JSON
@@ -138,6 +148,8 @@ exports.start = function(config){
     for ( i in watcher.commands ) {
       registerCommand( watcher.name , watcher.commands[ i ] );
     }
+
+    //Register mixin
 
     utils.log( 'Routes created for watcher:' + watcher.name , module );
 

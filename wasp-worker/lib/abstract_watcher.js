@@ -3,6 +3,7 @@ var utils = require('./utils.js'),
 
 AbstractWatcher = function () {
   this.commands = [];
+  this.mixins = {};
 };
 
 AbstractWatcher.prototype = {
@@ -17,9 +18,22 @@ AbstractWatcher.prototype = {
   execute : function ( commandName, cfg ) {
     if ( typeof cfg != 'Array' )
       cfg = [ cfg ];
-   
+    
+    if ( this.mixins['before'] && this.mixins['before'].length ) {
+      for ( var mixin in this.mixins['before'] ) {
+        cfg = this.mixins['before'][mixin].apply(cfg) || cfg;
+      }
+    }
+
     if ( this.isCommandAvailable( commandName ) )
       this[ "_" + commandName ].apply( this,  cfg );
+
+    if ( this.mixins['after'] && this.mixins['after'].length ) {
+      for ( var mixin in this.mixins['after'] ) {
+        cfg = this.mixins['after'][mixin].apply(cfg) || cfg;
+      }
+    }
+    
   },
 
  // watcher.execute( "info" , write );
@@ -97,12 +111,20 @@ AbstractWatcher.prototype = {
       this.commands.push( name )
   },
 
-  /*registerMixin : function( mixin ) {
+  registerMixin : function( mixin ) {
     // sur quoi le mixin doit reagir
-    var commands = mixin.commands // ex: ['info', 'start'] 
-    for ( i in commands ) {
-      var command...
-      this.commands[ command ].mixins.push( mixin );
-    }
-  }*/
+    var commands = mixin.commands; // ex: ['info', 'start'] 
+    for ( var command in commands ) {
+
+      if ( this.mixins[command] === undefined ) {
+        this.mixins[command] = {};
+
+        this.mixins[command]['before'] = [];
+        this.mixins[command]['after'] = []; 
+      }
+
+      this.mixins[command][mixin.state].push( new mixinTypes[mixin.type] );
+
+    } 
+  }
 };
