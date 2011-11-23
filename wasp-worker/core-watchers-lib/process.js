@@ -80,6 +80,7 @@ utils.extend( ProcessWatcher.prototype, {
 
     exec( cfg['restartCmd'] == null ? cfg['stopCmd'] + ';' + cfg['startCmd'] : cfg['restartCmd'], function(error, stdout, stderr) {
       utils.log('Restarting Process: ' + that.name);
+      trigger('afterRest  rt')
     });
   },
 

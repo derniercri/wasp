@@ -102,7 +102,8 @@ var write = function( report ){
 var startMonitor = function( watcher ) {
   setInterval(
     function() {
-      watcher.execute( "info" , write );
+      var context = watcher.getExecuteContext("info");
+      watcher.execute.apply( context, [ "info" , write ] );
     }, 
     watcher.cfg.timer
   );

@@ -18,22 +18,14 @@ AbstractWatcher.prototype = {
   execute : function ( commandName, cfg ) {
     if ( typeof cfg != 'Object' )
       cfg = [ cfg ];
-    
-    if ( this.mixins[commandName] && this.mixins[commandName]['before'] ) {
-      for ( var mixin in this.mixins[commandName]['before'] ) {
-        cfg = this.mixins[commandName]['before'][mixin].perform(cfg) || cfg;
-      }
-    }
-
+      
     if ( this.isCommandAvailable( commandName ) )
-      this[ "_" + commandName ].apply( this,  cfg );
+      this[ "_" + commandName ].apply( this,  cfg );  
+  },
 
-    /*if ( this.mixins['after'] ) {
-      for ( var mixin in this.mixins['after'] ) {
-        this.mixins['after'][mixin].apply(cfg);
-      }
-    }*/
-    
+  getExecuteContext : function(commandName) {
+    var array = this.mixins[commandName]['before'];
+    return array[ array.length - 1 ] || this ;
   },
 
   isCommandAvailable : function ( name ) {
@@ -67,6 +59,12 @@ AbstractWatcher.prototype = {
   registerCommand : function( name ) {
     var found = this.isCommandAvailable( name );
 
+    if( ! this.mixins[name] ) {
+      this.mixins[name] = {};
+      this.mixins[name]['before'] = [];
+      this.mixins[name]['after'] = [];
+    }
+
     if ( ! found )
       this.commands.push( name )
   },
@@ -77,15 +75,13 @@ AbstractWatcher.prototype = {
     for ( var command in commands ) {
       var commandName = commands[command];
 
-      if ( this.mixins[commandName] === undefined ) {
-        this.mixins[commandName] = {};
+      if( mixin.state == "before") {
+        var mixinObj = new mixinTypes[mixinName](commandName, this.execute, this);
 
-        this.mixins[commandName]['before'] = [];
-        this.mixins[commandName]['after'] = []; 
+        this.execute = mixinObj.execute;
+
+        this.mixins[commandName]['before'].push( mixinObj );
       }
-    
-      var mixinObj = new mixinTypes[mixinName]();
-      this.mixins[commandName][mixin.state].push( mixinObj );
 
       utils.log( 'Registering mixin: ' + mixinName + ' at command ' + commandName , module );
     } 
