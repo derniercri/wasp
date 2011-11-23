@@ -149,6 +149,12 @@ exports.start = function(config){
       registerCommand( watcher.name , watcher.commands[ i ] );
     }
 
+    if ( watcherCfg.mixins ) {
+      for ( i in watcherCfg.mixins ) {
+        watcher.registerMixin(watcherCfg.mixins[i], i);
+      }
+    }
+
     //Register mixin
 
     utils.log( 'Routes created for watcher:' + watcher.name , module );

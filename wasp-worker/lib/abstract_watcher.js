@@ -18,24 +18,27 @@ AbstractWatcher.prototype = {
   execute : function ( commandName, cfg ) {
     if ( typeof cfg != 'Object' )
       cfg = [ cfg ];
+
+    console.log( this.mixins[commandName] );
     
-    if ( this.mixins['before'] && this.mixins['before'].length ) {
-      for ( var mixin in this.mixins['before'] ) {
-        cfg = this.mixins['before'][mixin].apply(cfg) || cfg;
+    if ( this.mixins[commandName] && this.mixins[commandName]['before'] ) {
+      for ( var mixin in this.mixins[commandName]['before'] ) {
+
+        cfg = this.mixins[commandName]['before'][mixin].perform(cfg) || cfg;
       }
     }
 
     if ( this.isCommandAvailable( commandName ) )
       this[ "_" + commandName ].apply( this,  cfg );
 
-    if ( this.mixins['after'] && this.mixins['after'].length ) {
+    /*if ( this.mixins['after'] ) {
       for ( var mixin in this.mixins['after'] ) {
         this.mixins['after'][mixin].apply(cfg);
       }
-    }
+    }*/
     
   },
-  
+
   isCommandAvailable : function ( name ) {
     var found = false;
     for ( i in this.commands ) {
@@ -71,20 +74,23 @@ AbstractWatcher.prototype = {
       this.commands.push( name )
   },
 
-  registerMixin : function( mixin ) {
+  registerMixin : function( mixin, mixinName ) {
     // sur quoi le mixin doit reagir
     var commands = mixin.commands; // ex: ['info', 'start'] 
     for ( var command in commands ) {
+      var commandName = commands[command];
 
-      if ( this.mixins[command] === undefined ) {
-        this.mixins[command] = {};
+      if ( this.mixins[commandName] === undefined ) {
+        this.mixins[commandName] = {};
 
-        this.mixins[command]['before'] = [];
-        this.mixins[command]['after'] = []; 
+        this.mixins[commandName]['before'] = [];
+        this.mixins[commandName]['after'] = []; 
       }
-
-      this.mixins[command][mixin.state].push( new mixinTypes[mixin.type] );
-
+    
+      var mixinObj = new mixinTypes[mixinName]();
+      this.mixins[commandName][mixin.state].push( mixinObj );
+      console.log(this.mixins);
+      utils.log( 'Registering mixin: ' + mixinName + ' at command ' + commandName , module );
     } 
   }
 };
