@@ -100,12 +100,12 @@ var write = function( report ){
 
 
 var startMonitor = function( watcher ) {
-  setInterval( 
+  setInterval(
     function() {
       watcher.execute( "info" , write );
     }, 
     watcher.cfg.timer
-  );  
+  );
 }
 
 

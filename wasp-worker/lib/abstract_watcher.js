@@ -16,7 +16,7 @@ AbstractWatcher.prototype = {
   },
 
   execute : function ( commandName, cfg ) {
-    if ( typeof cfg != 'Array' )
+    if ( typeof cfg != 'Object' )
       cfg = [ cfg ];
     
     if ( this.mixins['before'] && this.mixins['before'].length ) {
@@ -30,52 +30,12 @@ AbstractWatcher.prototype = {
 
     if ( this.mixins['after'] && this.mixins['after'].length ) {
       for ( var mixin in this.mixins['after'] ) {
-        cfg = this.mixins['after'][mixin].apply(cfg) || cfg;
+        this.mixins['after'][mixin].apply(cfg);
       }
     }
     
   },
-
- // watcher.execute( "info" , write );
-    // interface mixin
-
-/*
-  for ( j in commands[command ].mixins ) {
-      var mixin = ...[j];
-      cfg  = mixin.apply( this, cfg );
-
-    }
-  mixin {
-    apply : function ( baseParams ) {
-      // do stuff...
-    }
-  }
-
-  do-restart {
-    apply : function( watcher, baseParams) {
-      var writeOld = baseParams;
-      
-      return function(request) {
-        watcher.start();
-
-        writeOld(request);
-      };
-    }
-  }
-
-  sendemail {
-    apply : function( watcher, baseParams) {
-      var writeOld = baseParams;
-      
-      return function(request) {
-        sendMail();
-
-        writeOld(request);
-      };
-    }
-  }
-*/
-
+  
   isCommandAvailable : function ( name ) {
     var found = false;
     for ( i in this.commands ) {
