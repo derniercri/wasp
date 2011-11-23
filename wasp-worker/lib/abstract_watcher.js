@@ -18,12 +18,9 @@ AbstractWatcher.prototype = {
   execute : function ( commandName, cfg ) {
     if ( typeof cfg != 'Object' )
       cfg = [ cfg ];
-
-    console.log( this.mixins[commandName] );
     
     if ( this.mixins[commandName] && this.mixins[commandName]['before'] ) {
       for ( var mixin in this.mixins[commandName]['before'] ) {
-
         cfg = this.mixins[commandName]['before'][mixin].perform(cfg) || cfg;
       }
     }
@@ -89,7 +86,7 @@ AbstractWatcher.prototype = {
     
       var mixinObj = new mixinTypes[mixinName]();
       this.mixins[commandName][mixin.state].push( mixinObj );
-      console.log(this.mixins);
+
       utils.log( 'Registering mixin: ' + mixinName + ' at command ' + commandName , module );
     } 
   }
