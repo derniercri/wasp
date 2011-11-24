@@ -16,9 +16,9 @@ AbstractWatcher.prototype = {
   },
 
   execute : function ( commandName, cfg ) {
-    if ( typeof cfg != 'Object' )
+    if ( typeof cfg != 'object' )
       cfg = [ cfg ];
-      
+
     if ( this.isCommandAvailable( commandName ) )
       this[ "_" + commandName ].apply( this,  cfg );  
   },
@@ -76,7 +76,9 @@ AbstractWatcher.prototype = {
       var commandName = commands[command];
 
       if( mixin.state == "before") {
-        var mixinObj = new mixinTypes[mixinName](commandName, this.execute, this);
+        var context = this.getExecuteContext(commandName);
+
+        var mixinObj = new mixinTypes[mixinName](commandName, this.execute, context );
 
         this.execute = mixinObj.execute;
 

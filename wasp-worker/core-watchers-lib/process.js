@@ -34,9 +34,9 @@ utils.extend( ProcessWatcher.prototype, {
   },
 
   _info : function ( requestHandler ) {
-    var that = this,
+    var that = this
       cfg = this.cfg;
-
+      
     var reply = {
       name: this.name,
       type: "process"

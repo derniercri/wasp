@@ -14,8 +14,7 @@ AbstractMixin.prototype = {
   },
 
   execute : function(commandName, cfg) {
-
-    if ( typeof cfg != 'Object' )
+   if ( typeof cfg != 'object' )
       cfg = [ cfg ];
 
     if ( commandName == this.command ) {

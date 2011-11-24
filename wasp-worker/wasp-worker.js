@@ -103,7 +103,7 @@ var startMonitor = function( watcher ) {
   setInterval(
     function() {
       var context = watcher.getExecuteContext("info");
-      watcher.execute.apply( context, [ "info" , write ] );
+      watcher.execute.apply( context, [ "info" , write  ] );
     }, 
     watcher.cfg.timer
   );
@@ -152,7 +152,7 @@ exports.start = function(config){
 
     if ( watcherCfg.mixins ) {
       for ( i in watcherCfg.mixins ) {
-        watcher.registerMixin(watcherCfg.mixins[i], i);
+        watcher.registerMixin(watcherCfg.mixins[i], watcherCfg.mixins[i].type );
       }
     }
 

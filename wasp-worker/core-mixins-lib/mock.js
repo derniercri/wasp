@@ -9,7 +9,6 @@ Mock = function (commandName, next, context) {
   this.init(commandName, next, context);
 };
 
-console.log(new AbstractMixin());
 Mock.prototype = new AbstractMixin();
 
 utils.extend( Mock.prototype, {
@@ -17,7 +16,6 @@ utils.extend( Mock.prototype, {
 
   perform : function ( cfg ) {
     this.times += 1;
-    console.log(this);    
     console.log('HEY GANGSTERS I GOT CALLED ' + this.times + ' TODAY OKAY');
 
     this.nextTick.apply( this.context, [ this.command, cfg ] ); 
