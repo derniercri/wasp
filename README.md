@@ -2,10 +2,11 @@
 
 ## Overview
 
-  Wasp is a monitoring tool, exclusively based on NodeJS. 
+  Wasp is a monitoring tool, exclusively based on NodeJS, originally built for [Fresc](http://fre.sc).
   It aims to be light and extensible, for the delight of developpers.
 
   Wasp comes in two parts:
+
   - a web application, that can be installed multiples times. 
     Each webapp can handle advanced scripting behavior, using a plugins system called "viewers".
 
