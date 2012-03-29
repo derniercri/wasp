@@ -29,8 +29,8 @@ var refresh = function( req, res ) {
     var workerName = worker['name'];
     var watcherName = watcher['name'];
 
-    redisCli.lrange('wasp:reports:' + rSafe( workerName ) + ":" + rSafe( watcherName ), 0, 0, function(err, reportsId) {
-      var reportId = reportsId[0];
+    redisCli.get('wasp:reports:' + rSafe( workerName ) + ":" + rSafe( watcherName ), function(err, reportId) {
+      var reportId = parseInt( reportId );
 
       if ( reportId == undefined )  {
         syncer--;

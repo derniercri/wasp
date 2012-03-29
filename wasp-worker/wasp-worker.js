@@ -73,14 +73,24 @@ var write = function( report ){
     consts.REDIS_PREFIX + 'reports_id', 
     function( error, reply ) {
       
-      redisCli.lpush( 
+      redisCli.set( 
         consts.REDIS_PREFIX + 'reports:' + rSafe( server['name'] ) + ':' + rSafe( report['name'] ), 
         reply
+      );
+
+      redisCli.expire(
+        consts.REDIS_PREFIX + 'reports:' + rSafe( server['name'] ) + ':' + rSafe( report['name'] ), 
+        86400
       );
 
       redisCli.set(
         consts.REDIS_PREFIX + 'full_reports:' + reply, 
         JSON.stringify(report)
+      );
+
+      redisCli.expire(
+        consts.REDIS_PREFIX + 'full_reports:' + reply, 
+        86400
       );
 
       utils.log( consts.REDIS_PREFIX + 'reports:' + rSafe( server['name'] ) + ':' + rSafe( report['name'] ) , module);
