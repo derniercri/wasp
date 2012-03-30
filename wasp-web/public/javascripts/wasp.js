@@ -1,115 +1,74 @@
-var wasp = {};
+var wasp = $w = {};
 
 (function($) {
 
 $.extend( wasp, 
 {
-  viewers : {},
-
+  /**pack
+   * On page load, we delay the WASP loading to avoid the infinite page loading effect
+   */
   init : function() {
-    setInterval( wasp.refresh, 3000 );
+    $w.messagePanel.init();
+    $w.boxManager.init();
+    $w.messagePanel.error("Wasp web dashboard started");
+
+    setInterval( $w.refresh, 3000 );
   },
 
-  getDateStr : function() {
-    var d = new Date();
-    return d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear() +  " - " + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
-  },
-
+  /**
+   * refresh dashbaord content 
+   */
   refresh : function() {
-    $.ajax({
+    var request = $.ajax({
       url: '/refresh',
       dataType: 'json',
-      success: function( data ) {
-        wasp.processRefresh( data );
-      },
-      error: function() {
-        wasp.spawnError( wasp.getDateStr() + " : Could not refresh" , "refresh" );
+      timeout: 5000, // request timeout : 5s
+      success: $w.refreshSuccessHandler,
+      error: function(jqXhr, textStatus, errorThrown) {
+        $w.messagePanel.error( "Connection error: Could not retrieve data. Cause is: " + textStatus );
       }
     });
   },
 
-  processRefresh : function( data ) {
+
+  /**
+   * handle the content refresh 
+   * which means should update any monitoredObject and plugins
+   */
+  refreshSuccessHandler : function( data ) {
     var workers = data['workers'];
 
     if ( ! workers ) {
-      wasp.spawnError('Bad JSON refresh', "refreshErr");
+      $w.messagePanel.error('Refresh error: JSON is incorrect or no worker instancied');
       return;
     }
 
-    for ( i in workers ) { // first loop is for workers
-      var worker = workers[i];
-      var ip = i; 
+    var mosMngr = $w.monitoredObjectsManager;
 
-      var box = wasp.boxes.get('worker', ip)
-
-      box.setStatus( worker['status'] );
+     // first loop is for workers
+    for ( var ip in workers ) { 
+      var worker = workers[ ip ]
+        , mo = mosMngr.findOrCreate( ip, worker );
       
-      if ( worker['name'] )
-        box.setTitle( worker['name'] );
-      else
-        box.setTitle( ip );
-
-      if ( worker['status'] == 0 )
-        continue;
-
       var watchers = worker['watchers'];
-      for ( j in watchers ) {
-        var watcher = watchers[j];
 
-        var watcherBox = wasp.boxes.get( watcher.type, ip, watcher.name );
+      for ( var name in watchers ) {
+        var watcher = watchers[ name ];
 
-        watcherBox.setStatus( watcher['status'] );
-        watcherBox.setTitle( watcher.name );
+        watcher['hostname'] = worker['name'] ? worker['name'] : ip;
+
+        var mo = mosMngr.findOrCreate( ip + "-" +  name, watcher );
       }
 
       // TODO  : delete removed watchers in case of a daemon restart.
     }
-  },
-
-  spawnError : function( msg, errorId ) {
-    var errorBox;
-
-    var errorTmp;
-    if ( errorId ) {
-      errorTmp = $('#' + errorId);
-    }
-
-    if ( errorTmp && errorTmp.length > 0 ) {
-      errorBox = errorTmp;  
-    }
-    else {
-      errorBox = $('<div></div>')
-        .addClass('errorBox')
-        .click( function() {
-          $(this).remove();
-        });
-      
-      if ( errorId )
-        errorBox.attr('id', errorId);
-
-      $('body').prepend( errorBox );
-    }
-
-    errorBox.html( msg );
   }
 });
 
 
-jQuery.fn.log = function (msg , noDate) {
-  if (window.console != undefined) {
-    
-    var dateStr = "[" + wasp.getDateStr() + "] " ;
-
-    if ( noDate ) 
-      dateStr = "";
-
-    console.log( dateStr + "%s: %o", msg, this);
-  }
-  return this;
-};
-
 
 $(window).load(function() {
+  // start wasp dashboard !
   wasp.init();
 });
 

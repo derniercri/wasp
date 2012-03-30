@@ -25,7 +25,7 @@
     "url" : "git@github.com:nectify/wasp.git"
   },
   "bugs" : { 
-    "web" : "http://github.com/nectify/wasp/issues"
+    "url" : "http://github.com/nectify/wasp/issues"
   },
   "os" : [ "linux", "osx" ],
   "directories" : { 
@@ -36,10 +36,11 @@
     "node" : ">=0.4"
   },
   "dependencies" : { 
-    "redis" : "*" , 
+    "redis" : "0.6.x" ,  
     "express" : "*",
-    "winston" : "*",
-    "jade": "*" 
+    "winston" : "0.5.9",
+    "jade": "*",
+    "pkginfo": "0.2.x"
   },
   "licenses" : [
     { 
