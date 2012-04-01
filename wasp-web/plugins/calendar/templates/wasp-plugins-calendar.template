@@ -1,0 +1,4 @@
+<div class="calendar">
+<div class="time">{{time}}</div>
+<div class="date">{{date}}</div>
+</div>

@@ -1,0 +1,12 @@
+body {
+  transition: background 300ms ease-in 2s;
+  background-size: cover;
+}
+
+body.down {
+  background-image: url("http://farm1.staticflickr.com/94/249136794_b77fd7dc5f_o.jpg");
+}
+
+body.up {
+  background-image: url("http://farm4.staticflickr.com/3178/2900989944_3f62456a53_o.jpg");
+}

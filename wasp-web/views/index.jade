@@ -2,14 +2,66 @@
 html
   head
     title WASP - Dashboard  
-    link(href="/stylesheets/screen.css", media="screen, projection", rel="stylesheet", type="text/css")`
-    link(href="/stylesheets/print.css", media="print", rel="stylesheet", type="text/css")
+
+    meta( name="apple-mobile-web-app-capable", content="yes" )
+    
+    link(href='http://fonts.googleapis.com/css?family=Ubuntu:300,400', rel='stylesheet', type='text/css')
+    link(href="/stylesheets/screen.css", media="screen, projection", rel="stylesheet", type="text/css")
+  
+    - pluginsManager.exposedCSS.forEach(function( sourceFile ) {
+      link(href= sourceFile, media="screen, projection", rel="stylesheet", type="text/css")
+    - })
+
     script(type="text/javascript", src="/javascripts/jquery-1.6.4.min.js")
+    script(type="text/javascript", src="/javascripts/mustache.js")
+    script(type="text/javascript", src="/javascripts/wasp.jquery.js")
     script(type="text/javascript", src="/javascripts/wasp.js")
-    script(type="text/javascript", src="/javascripts/wasp.boxes.js")
-    script(type="text/javascript", src="/javascripts/wasp.boxes.worker.js")
+    script(type="text/javascript", src="/javascripts/wasp.utils.js")
+    script(type="text/javascript", src="/javascripts/wasp.boxManager.js")
+    script(type="text/javascript", src="/javascripts/wasp.messagePanel.js")
+    script(type="text/javascript", src="/javascripts/wasp.monitoredObject.js")
+
+    - pluginsManager.exposedJS.forEach(function( sourceFile ) {
+      script(type="text/javascript", src= sourceFile )      
+    - })
+
       
   body
-    #content.wrapper
-      .box#title
-        h1 WASP
+    #wrapper
+      #content
+        #top
+          ul#messages
+          .clearer &nbsp;
+        ul#plugins.wrapper
+
+      #aside
+        h1 wasp
+
+        ul#monitored-objects
+
+    
+    script#tmpl-monitored-object( type="text/template" )
+      li.monitored-object( id = "watcher_status-{{id}}", class = "{{statusClass}}" )
+        .host
+          {{hostname}}
+
+        .status
+
+        .name
+          {{name}}
+
+
+    script#tmpl-message( type="text/template" )
+      li.message
+        .datetime
+          {{datetime}}
+        
+        .text
+          {{{txt}}}
+
+    script#tmpl-box( type="text/template" )
+      li.box( id = "{{id}}")
+
+    each content, templateId in pluginsManager.includedTemplates
+      script( type="text/template", id = "tmpl-" + templateId )
+        !{content}
