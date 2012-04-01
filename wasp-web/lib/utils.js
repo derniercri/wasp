@@ -1,4 +1,10 @@
-var sys = require("sys"),
+/*!
+ * Wasp
+ * Copyright(c) 2011, 2012 Nectify <dev@nectify.com>
+ * Apache 2.0 Licensed
+ */
+
+var sys = require("util"),
 winston = require('winston');
 
 

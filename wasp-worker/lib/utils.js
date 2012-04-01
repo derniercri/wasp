@@ -1,4 +1,4 @@
-var sys = require("sys"),
+var sys = require("util"),
   winston = require('winston');
 
 var extend = function(target, object) {

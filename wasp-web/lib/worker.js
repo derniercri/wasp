@@ -24,8 +24,6 @@ Worker.prototype = {
         that.stopTimer();
         var result = JSON.parse( rawRes );
 
-        utils.log("Monitoring result: " + result['name'] + " found: " + rawRes , module );
-
         that.status = 1;
         that.name = result['name'];
         that.safeName = that.name.replace(' ', '_');

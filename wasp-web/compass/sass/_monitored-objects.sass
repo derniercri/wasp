@@ -1,0 +1,33 @@
+#monitored-objects
+  .monitored-object
+    margin: 10px
+    padding: 10px
+    line-height: 30px
+    height: 30px
+    overflow: hidden
+
+    .status
+      float: left
+      height: 30px
+      margin: 0 10px 0px 10px
+      width: 30px
+
+    .host
+      float: right
+      margin-left: 10px
+      color: $color-light
+
+    .name 
+      overflow: hidden
+
+  .up
+    background-color: rgba(0, 100, 0, 0.6)
+
+    .status
+      background-color: #00FF00
+
+  .down
+    background-color: rgba(100, 0, 0, 0.6)
+
+    .status
+      background-color: #FF0000
