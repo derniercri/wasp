@@ -1,7 +1,7 @@
   {
   "name" : "wasp-web",
   "description" : "NodeJS extensible monitoring solution for cloud servers, processes and applications",
-  "version" : "0.2.0",
+  "version" : "0.2.1",
   "main" : "./wasp-web.js",
   "contributors" : [
     {
