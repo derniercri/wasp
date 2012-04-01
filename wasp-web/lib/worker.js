@@ -14,7 +14,7 @@ Worker.prototype = {
     var that = this;
 
     var options = {
-      ip: this.ip,
+      host: this.ip,
       port: 4545,
       path: '/'
     };
