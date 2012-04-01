@@ -1,0 +1,14 @@
+.calendar {
+  text-align: center;
+}
+
+.calendar .time {
+  font-size: 80px;
+  margin-top: 60px;
+}
+
+.calendar .date {
+  color: #cccccc;
+  font-size: 40px;
+  margin-top: 10px;
+}

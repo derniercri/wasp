@@ -7,7 +7,10 @@ html
     
     link(href='http://fonts.googleapis.com/css?family=Ubuntu:300,400', rel='stylesheet', type='text/css')
     link(href="/stylesheets/screen.css", media="screen, projection", rel="stylesheet", type="text/css")
-    link(href="/stylesheets/print.css", media="print", rel="stylesheet", type="text/css")
+  
+    - pluginsManager.exposedCSS.forEach(function( sourceFile ) {
+      link(href= sourceFile, media="screen, projection", rel="stylesheet", type="text/css")
+    - })
 
     script(type="text/javascript", src="/javascripts/jquery-1.6.4.min.js")
     script(type="text/javascript", src="/javascripts/mustache.js")
@@ -18,6 +21,10 @@ html
     script(type="text/javascript", src="/javascripts/wasp.messagePanel.js")
     script(type="text/javascript", src="/javascripts/wasp.monitoredObject.js")
 
+    - pluginsManager.exposedJS.forEach(function( sourceFile ) {
+      script(type="text/javascript", src= sourceFile )      
+    - })
+
       
   body
     #wrapper
@@ -25,7 +32,8 @@ html
         #top
           ul#messages
           .clearer &nbsp;
-        #plugins.wrapper
+        ul#plugins.wrapper
+
       #aside
         h1 wasp
 
@@ -51,4 +59,9 @@ html
         .text
           {{{txt}}}
 
+    script#tmpl-box( type="text/template" )
+      li.box( id = "{{id}}")
 
+    each content, templateId in pluginsManager.includedTemplates
+      script( type="text/template", id = "tmpl-" + templateId )
+        !{content}

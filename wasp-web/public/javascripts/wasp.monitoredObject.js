@@ -6,7 +6,10 @@ var monitoredObjectsListId = '#monitored-objects'; // this is where monitored ob
  * A monitored object is something that has a status. 
  * It can be either a worker or a watcher
  */
-MonitoredObject = function() {};
+MonitoredObject = function() {
+  this.events = {};
+  this.subObjects = [];
+};
 MonitoredObject.prototype = {
   /**
    * initialize a new monitored object with an id and its status data
@@ -22,6 +25,29 @@ MonitoredObject.prototype = {
 
 
   /**
+   * adds a sub object. Sub object are delete on status down
+   */
+  addSubObject : function( mo ) {
+    this.subObjects.push( mo )
+  },
+
+
+  /**
+   * Fire an event. Will execute any callback attached to it
+   */
+  fire :  function( eventName, args ) {
+    if ( ! eventName in this.events )
+      return;
+
+    var handlers = this.events[eventName];
+       
+    for ( var i in handlers ) {
+      handlers[i].call(this, args);
+    }
+  },
+
+
+  /**
    * Should make the element clearly visible
    * Actually it put the element in the top of the monitoredObjects list
    */
@@ -29,6 +55,27 @@ MonitoredObject.prototype = {
     this.element
       .detach()
       .prependTo( monitoredObjectsListId );
+  },
+
+
+  /**
+   * Register a callback for event named eventName
+   */
+  on : function( eventName , callback) {
+    var events = this.events;
+
+    if ( ! ( eventName in events ) ) 
+      events[eventName] = [];
+
+    events[ eventName ].push( callback );
+  },
+
+
+  remove : function() {
+    if ( this.element )
+      this.element.remove();
+
+    this.element = undefined;
   },
 
 
@@ -60,6 +107,7 @@ MonitoredObject.prototype = {
       this.focus();
   },
 
+
   /**
    *  update a monitored object data with its status data
    */
@@ -74,7 +122,15 @@ MonitoredObject.prototype = {
     this.data['hostname'] = props['hostname']; // ? props['hostname'] : "W: " + this.id;
 
     // if no host is specified then we are showing a worker
-    this.data['name'] = this.data['hostname'] ? props['name'] : props['name'] + " (" + this.id + ")";
+    if ( this.data['hostname'] ) {
+      this.data['name'] = props['name'];
+    }
+    else {
+      if ( props['name'] ) // worker is up, then we 
+        this.data['name'] = props['name'] + "@" + this.id ;
+      else
+        this.data['name'] = "@" + this.id;
+    }
 
     this.updateStatus( props['status'] )
   },
@@ -96,6 +152,21 @@ MonitoredObject.prototype = {
       else 
         $w.messagePanel.serviceDown( this.data['name'] , this.data['hostname'])
     }
+
+    if ( status != 1 ) {
+      for ( var i in this.subObjects ) {
+        var mo = this.subObjects[i];
+
+        $w.monitoredObjectsManager.delete( mo.id );
+      }
+
+      this.subObjects = [];
+    }
+
+    
+    var statusName = (status == 1) ? "up" : "down";
+
+    this.fire("statusChanged", { status: statusName })
   } 
 
 
@@ -107,6 +178,7 @@ MonitoredObject.prototype = {
 $.extend( wasp, {
 monitoredObjectsManager: {
   monitoredObjects: {},
+  events: {},
 
   /**
    * id, (optional: props )
@@ -125,11 +197,55 @@ monitoredObjectsManager: {
     }
 
     var mo = new MonitoredObject();
-    mo.init( id , props );
 
-    mos[id] = mo;
+    mo.on("statusChanged", $w.monitoredObjectsManager.updateGlobalStatus );
+    mos[id] = mo;  
+
+    mo.init( id , props );    
 
     return mo;
+  },
+
+
+  delete : function( id ) {
+    var mos = $w.monitoredObjectsManager.monitoredObjects;
+
+    if ( id in mos ) {
+      var mo = mos[id];
+
+      mo.remove();
+
+      delete mos[id];
+    }
+  },
+
+
+  /**
+   * update the global status
+   * up if each monitored object is up
+   * else down
+   */
+  updateGlobalStatus : function() {
+    var previousStatus = $w.monitoredObjectsManager.globalStatus
+      , mos = $w.monitoredObjectsManager.monitoredObjects;
+
+    var up = true;
+    for ( var i in mos ) {
+      var mo = mos[i];
+
+      if ( mo.data['status'] != 1 ) {
+        up = false;
+        break;
+      }
+    }
+
+    var currentStatus = up ? "up" : "down";
+
+    if ( currentStatus != previousStatus ) {
+      $w.fire("globalStatusChanged", { status: currentStatus });
+      $w.monitoredObjectsManager.globalStatus = currentStatus;
+    }
+
   }
 }
 });

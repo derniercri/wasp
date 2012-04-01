@@ -13,6 +13,44 @@ $.extend( wasp,
     $w.messagePanel.error("Wasp web dashboard started");
 
     setInterval( $w.refresh, 3000 );
+
+
+    $w.boxIdIncr = 0;
+
+    $w.fire("load");
+  },
+
+  /**
+   * Fire an event. Will execute any callback attached to it
+   */
+  fire :  function( eventName, args ) {
+    if ( ! eventName in $w.events )
+      return;
+
+    var handlers = $w.events[eventName];
+       
+    for ( var i in handlers ) {
+      handlers[i].call($w, args);
+    }
+  },
+
+  /**
+   * Register a callback for event named eventName
+   */
+  on : function( eventName , callback) {
+    if ( ! $w.events )
+      $w.events = {};
+
+    var events = $w.events;
+
+    if ( ! ( eventName in events ) ) 
+      events[eventName] = [];
+
+    events[ eventName ].push( callback );
+  },
+
+  newBox : function( templateId ) {
+    return $w.boxManager.newBox( templateId );
   },
 
   /**
@@ -48,7 +86,7 @@ $.extend( wasp,
      // first loop is for workers
     for ( var ip in workers ) { 
       var worker = workers[ ip ]
-        , mo = mosMngr.findOrCreate( ip, worker );
+        , workerMo = mosMngr.findOrCreate( ip, worker );
       
       var watchers = worker['watchers'];
 
@@ -58,6 +96,8 @@ $.extend( wasp,
         watcher['hostname'] = worker['name'] ? worker['name'] : ip;
 
         var mo = mosMngr.findOrCreate( ip + "-" +  name, watcher );
+
+        workerMo.addSubObject( mo );
       }
 
       // TODO  : delete removed watchers in case of a daemon restart.

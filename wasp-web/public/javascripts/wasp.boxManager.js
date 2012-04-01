@@ -12,6 +12,19 @@ BoxManager.prototype = {
   init : function( id, statusData ) {
     var that = this;
     $w.utils.onResizeAndNow( function() { that.resizeBoxes() } );
+
+    this.boxIdIncr = 0;
+
+    this.pluginsContainer = $('#plugins');
+  },
+
+  newBox : function( templateId ) {
+    var boxId = "box-" + this.boxIdIncr++;
+    var $box = $.mustachize('box', { id: boxId });
+
+    $box.appendTo( this.pluginsContainer );
+
+    return boxId
   },
 
   resizeBoxes : function() {
@@ -19,16 +32,17 @@ BoxManager.prototype = {
 
     // aside box
     var asideWidth = gridSize
-      , windowW = $('#wrapper').width()
+      , windowW = $('#wrapper').innerWidth()
       , asideOverWidth = ( windowW - asideWidth ) % gridSize
       , asideAjustedWidth = asideWidth + asideOverWidth
       , contentWidth = windowW - asideAjustedWidth;
+
 
     $('#content').width( contentWidth );
     $('#aside').width( asideAjustedWidth ).fadeIn();
 
     // plugin box
-    var contentH = $('#content').height()
+    var contentH = $('#wrapper').height()
       , pluginsH = gridSize
       , topH = 100
       , topOverH = ( contentH - topH ) % gridSize

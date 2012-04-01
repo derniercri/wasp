@@ -77,7 +77,7 @@ MessagePanel.prototype = {
     if ( hostname )
       txt = txt + " on  " + hostname;
     else 
-      txt = txt + " (worker)";
+      txt = "Worker: " + txt;
 
     txt = txt + " is  ";
 

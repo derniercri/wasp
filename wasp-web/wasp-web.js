@@ -15,7 +15,7 @@ var express = require('express')
   , redisCli = null
   , utils = require('./lib/utils')
   , workersManager = require('./lib/workersManager')
-  , applicationController = require('./lib/applicationController');
+  , ApplicationController = require('./lib/applicationController');
 
 
 function WaspWeb( options ) {
@@ -29,11 +29,10 @@ function WaspWeb( options ) {
 
   var settings = this.settings = utils.extend( defaults, options );
 
-  this.initRoutes();
   this.logger = new Logger( this.settings['log_level'] );
-
-  // Init the redis Cli
-  applicationController.redisInit(settings['redis']);
+  this.pluginsManager = new PluginsManager( this );
+  this.applicationController = new ApplicationController( settings['redis'], this.pluginsManager );
+  this.initRoutes();
 
   // loading any worker
   for ( var i in settings['workers'] ) {
@@ -47,12 +46,14 @@ function WaspWeb( options ) {
     this.logger.log("Initialized new WASP worker - ip: " + workerCfg['ip'], module);
   }
 
+  this.logger.log("Configuring Plugins", module);
+  this.initPlugins();
+
   // express configuration
   this.logger.log("Configuring Express", module)
   this.initExpress();
 
-  this.logger.log("Configuring Plugins", module);
-  this.initPlugins();
+  
 
   app.listen( settings["port"] );
 
@@ -65,18 +66,32 @@ WaspWeb.prototype = {
    * Routes should be declared here
    */
   initRoutes : function() {
-    this.app.all('/', applicationController.root);
-    this.app.all('/refresh', applicationController.refresh);
+    var that = this;
+    
+    this.app.all('/', function(req, res) { that.applicationController.root(req, res, this); } );
+    this.app.all('/refresh', function(req, res) { that.applicationController.refresh(req, res, this) } );
   },
 
   /**
    * Init express settings
    */
   initExpress : function() {
-    var app = this.app;
+    var that = this
+      , app = this.app
+      , pluginsManager = this.pluginsManager
+      , sourceDirs = pluginsManager.sourceDirs
+      , $l = this.logger;
 
     app.configure( function() {
       app.use(express.static(__dirname + '/public'));
+
+      for ( var i in sourceDirs ) {
+        var sourceDir = sourceDirs[ i ];
+
+        $l.info("Mounting plugin source dir: " + __dirname + sourceDir + "public" , module);
+
+        app.use( express.static( __dirname + sourceDir + 'public' ) );
+      }
     });
 
     app.set('views', __dirname +'/views');
@@ -93,8 +108,6 @@ WaspWeb.prototype = {
     var settings = this.settings
       , plugins = settings["plugins"]
       , $l = this.logger;
-
-    this.pluginsManager = new PluginsManager( this );
 
     for ( var i in plugins ) {
       var plugin = plugins[ i ];

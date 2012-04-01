@@ -7,6 +7,7 @@
 
 var consts = require('./consts')
   , Logger = require('./logger')
+  , fs = require('fs')
   , utils = require('./utils');
 
 
@@ -20,9 +21,10 @@ function PluginsManager( waspWeb ) {
 
   this.waspWeb = waspWeb;
   this.settings = settings;
-  this.plugins = {};
+  this.plugins = [];
   this.logger = new Logger( settings['log_level'] );
 
+  this.sourceDirs = [];
   this.exposedCSS = [];
   this.exposedJS = [];
   this.includedTemplates = {};
@@ -49,15 +51,15 @@ PluginsManager.prototype = {
 
     try { // first try, global plugin look up
       pluginClass = require( "wasp-web-plugin-" + pluginConf["type"] );
-      sourceDir = "./../node_modules/wasp-web-plugin-" + pluginConf["type"] + "/";
+      sourceDir = "/node_modules/wasp-web-plugin-" + pluginConf["type"] + "/";
     }
     catch( e ) {
       try { // second try, local lookup (included plugins)
         pluginClass = require( "./../plugins/" + type );
-        sourceDir = "./../plugins/" + pluginConf["type"] + "/";
+        sourceDir = "/plugins/" + pluginConf["type"] + "/";
       }
       catch( pluginNotFoundException ) {
-        $l.error("Plugin not found. Have you installed it?", module);
+        $l.error("Plugin: \"" + type + "\" not found. Have you installed it?", module);
         return;
       }
     }
@@ -66,6 +68,8 @@ PluginsManager.prototype = {
 
     // hooked!
     plugin.sourceDir = sourceDir;
+
+    this.sourceDirs.push( sourceDir );
 
     // should add to connect the plugin public dir
 
@@ -125,11 +129,12 @@ PluginsManager.prototype = {
 
     if ( includedTemplates[ id ] ) {
       $l.error("Template Conflict: this id is already taken: " + path, module);
-
       return;
     }
 
-    includedTemplates[ id ] = template;
+    var templateContent = fs.readFileSync(__dirname + "/.." + plugin.sourceDir + 'templates/' + template);
+
+    includedTemplates[ id ] = templateContent;
   },
 
   /**
