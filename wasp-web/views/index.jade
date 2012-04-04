@@ -25,6 +25,13 @@ html
       script(type="text/javascript", src= sourceFile )      
     - })
 
+    | <script type="text/javascript">
+    | (function($) { $w.on('load', function() {
+    each script in pluginsManager.scripts
+      !{script()}
+    |  });})(jQuery);
+    | </script>
+
       
   body
     #wrapper
