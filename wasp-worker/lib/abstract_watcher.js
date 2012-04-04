@@ -3,6 +3,7 @@ var utils = require('./utils.js'),
 
 AbstractWatcher = function () {
   this.commands = [];
+  this.mixins = {};
 };
 
 AbstractWatcher.prototype = {
@@ -15,52 +16,17 @@ AbstractWatcher.prototype = {
   },
 
   execute : function ( commandName, cfg ) {
-    if ( typeof cfg != 'Array' )
+    if ( typeof cfg != 'object' )
       cfg = [ cfg ];
-   
+
     if ( this.isCommandAvailable( commandName ) )
-      this[ "_" + commandName ].apply( this,  cfg );
+      this[ "_" + commandName ].apply( this,  cfg );  
   },
 
- // watcher.execute( "info" , write );
-    // interface mixin
-
-/*
-  for ( j in commands[command ].mixins ) {
-      var mixin = ...[j];
-      cfg  = mixin.apply( this, cfg );
-
-    }
-  mixin {
-    apply : function ( baseParams ) {
-      // do stuff...
-    }
-  }
-
-  do-restart {
-    apply : function( watcher, baseParams) {
-      var writeOld = baseParams;
-      
-      return function(request) {
-        watcher.start();
-
-        writeOld(request);
-      };
-    }
-  }
-
-  sendemail {
-    apply : function( watcher, baseParams) {
-      var writeOld = baseParams;
-      
-      return function(request) {
-        sendMail();
-
-        writeOld(request);
-      };
-    }
-  }
-*/
+  getExecuteContext : function(commandName) {
+    var array = this.mixins[commandName]['before'];
+    return array[ array.length - 1 ] || this ;
+  },
 
   isCommandAvailable : function ( name ) {
     var found = false;
@@ -93,16 +59,33 @@ AbstractWatcher.prototype = {
   registerCommand : function( name ) {
     var found = this.isCommandAvailable( name );
 
+    if( ! this.mixins[name] ) {
+      this.mixins[name] = {};
+      this.mixins[name]['before'] = [];
+      this.mixins[name]['after'] = [];
+    }
+
     if ( ! found )
       this.commands.push( name )
   },
 
-  /*registerMixin : function( mixin ) {
+  registerMixin : function( mixin, mixinName ) {
     // sur quoi le mixin doit reagir
-    var commands = mixin.commands // ex: ['info', 'start'] 
-    for ( i in commands ) {
-      var command...
-      this.commands[ command ].mixins.push( mixin );
-    }
-  }*/
+    var commands = mixin.commands; // ex: ['info', 'start'] 
+    for ( var command in commands ) {
+      var commandName = commands[command];
+
+      if( mixin.state == "before") {
+        var context = this.getExecuteContext(commandName);
+
+        var mixinObj = new mixinTypes[mixinName](commandName, this.execute, context );
+
+        this.execute = mixinObj.execute;
+
+        this.mixins[commandName]['before'].push( mixinObj );
+      }
+
+      utils.log( 'Registering mixin: ' + mixinName + ' at command ' + commandName , module );
+    } 
+  }
 };

@@ -34,9 +34,9 @@ utils.extend( ProcessWatcher.prototype, {
   },
 
   _info : function ( requestHandler ) {
-    var that = this,
+    var that = this
       cfg = this.cfg;
-
+      
     var reply = {
       name: this.name,
       type: "process"
@@ -80,6 +80,7 @@ utils.extend( ProcessWatcher.prototype, {
 
     exec( cfg['restartCmd'] == null ? cfg['stopCmd'] + ';' + cfg['startCmd'] : cfg['restartCmd'], function(error, stdout, stderr) {
       utils.log('Restarting Process: ' + that.name);
+      trigger('afterRest  rt')
     });
   },
 
