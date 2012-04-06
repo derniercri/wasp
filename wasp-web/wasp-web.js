@@ -4,15 +4,14 @@
  * Apache 2.0 Licensed
  */
 
-require('./lib/worker.js');
+require('./lib/worker');
 
 var express = require('express')
   , http = require('http')
   , consts = require("./lib/consts")
   , Logger = require('./lib/logger')
   , PluginsManager = require('./lib/pluginsManager')
-  , redis = require('redis')
-  , redisCli = null
+  , libRedis = require('redis')
   , utils = require('./lib/utils')
   , workersManager = require('./lib/workersManager')
   , ApplicationController = require('./lib/applicationController');
@@ -29,9 +28,17 @@ function WaspWeb( options ) {
 
   var settings = this.settings = utils.extend( defaults, options );
 
-  this.logger = new Logger( this.settings['log_level'] );
+  $l = this.logger = new Logger( this.settings['log_level'] );
+
+  $l.log("-");
+  $l.log("-");
+  $l.log("-");
+
+  this.redis = libRedis.createClient( settings['redis']['port'], settings['redis']['host'] );
+
   this.pluginsManager = new PluginsManager( this );
-  this.applicationController = new ApplicationController( settings['redis'], this.pluginsManager );
+  this.applicationController = new ApplicationController( this.redis, this.pluginsManager );
+
   this.initRoutes();
 
   // loading any worker

@@ -4,19 +4,22 @@
  * Apache 2.0 Licensed
  */
 
-var redis = require('redis'),
-  workersManager = require('./workersManager'),
+var workersManager = require('./workersManager'),
   utils = require('./utils');
 
-function ApplicationController(redisCfg, pluginsManager) {
-  this.redis = redis.createClient( redisCfg['port'], redisCfg['host'] );
+function ApplicationController(redis, pluginsManager) {
+  this.redis = redis;
   this.pluginsManager = pluginsManager;
 }
 
 
 ApplicationController.prototype = {
   root : function( req, res ) {
-    res.render( 'index', { pluginsManager: this.pluginsManager });
+    var pluginsManager = this.pluginsManager;
+
+    pluginsManager.loadScriptsInits( function( initStack ) {
+      res.render( 'index', { pluginsManager: pluginsManager, initStack: initStack });  
+    });    
   },
 
   refresh : function( req, res ) {

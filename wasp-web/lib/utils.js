@@ -16,6 +16,7 @@ var extend = function(target, object) {
 	return target;
 };
 
+
 var log = function (msg, module, noDate) {
   var moduleName;
 
@@ -34,13 +35,15 @@ var log = function (msg, module, noDate) {
   if ( noDate ) 
     dateStr = "";
 
-  winston.info(dateStr + "[" + moduleName + "] " + msg.toString());
+  winston.info("DEPRECATED LOGGER -- " + dateStr + "[" + moduleName + "] " + msg.toString());
 };
+
 
 var isEmpty = function ( str ) {
   return ( ! str || trim( str ) == '' );
 };
   
+
 var trim = function( str ) {
   var str = str.replace(/^\s\s*/, ''),
     ws = /\s/,
@@ -49,7 +52,21 @@ var trim = function( str ) {
   return str.slice(0, i + 1);
 };
 
+
+var wait = function( callbacks, done ) {
+   var counter = callbacks.length;
+   var next = function() {
+      if(--counter == 0) {
+         done();
+      }
+   };
+   for(var i = 0; i < callbacks.length; i++) {
+      callbacks[i](next);
+   }
+};
+
 exports.extend = extend;
 exports.log = log;
 exports.isEmpty = isEmpty;
 exports.trim = trim;
+exports.wait = wait;

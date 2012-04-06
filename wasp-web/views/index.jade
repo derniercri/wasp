@@ -27,8 +27,8 @@ html
 
     | <script type="text/javascript">
     | (function($) { $w.on('load', function() {
-    each script in pluginsManager.scripts
-      !{script()}
+    each init in initStack
+      !{init}
     |  });})(jQuery);
     | </script>
 

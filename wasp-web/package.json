@@ -1,7 +1,7 @@
   {
   "name" : "wasp-web",
   "description" : "NodeJS extensible monitoring solution for cloud servers, processes and applications",
-  "version" : "0.2.2",
+  "version" : "0.2.3",
   "main" : "./wasp-web.js",
   "contributors" : [
     {
@@ -28,12 +28,8 @@
     "url" : "http://github.com/nectify/wasp/issues"
   },
   "os" : [ "linux", "osx" ],
-  "directories" : { 
-    "lib" : "./lib"
-  }, 
-
   "engines" : { 
-    "node" : ">=0.4"
+    "node" : ">=0.6"
   },
   "dependencies" : { 
     "redis" : "0.6.x" ,  

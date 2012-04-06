@@ -28,7 +28,9 @@ function PluginsManager( waspWeb ) {
   this.exposedCSS = [];
   this.exposedJS = [];
   this.includedTemplates = {};
-  this.scripts = [];
+  this.scriptsInits = [];
+
+  this.redis = waspWeb.redis;
 }
 
 
@@ -141,10 +143,32 @@ PluginsManager.prototype = {
    * Adds a startup script for the plugin. 
    * Basically a raw javascript function that will be executed
    */
-  addScript : function( script ) {
-    var scripts =  this.scripts;
+  addScript : function( scriptInitializer ) {
+    var scriptsInits =  this.scriptsInits;
 
-    scripts.push( script );
+    scriptsInits.push( scriptInitializer );
+  },
+
+
+  /**
+   * sync and load each init script by callback script initializers
+   */
+  loadScriptsInits : function( done ) {
+    var scriptsInits = this.scriptsInits
+      , initStack = []
+      , counter = scriptsInits.length;
+
+    var scriptStacker = function( initScript ) {
+      initStack.push( str );
+
+      if( --counter == 0 ) {
+          done( initStack );
+       }
+    };
+
+    for ( var i = 0; i < scriptsInits.length; i++ ) {
+      scriptsInits[ i ]( scriptStacker );
+    }
   }
 };
 
