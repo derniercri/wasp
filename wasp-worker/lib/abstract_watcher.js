@@ -14,6 +14,11 @@ AbstractWatcher.prototype = {
     return this.commands;
   },
 
+
+  /**
+   * Commands should always be executable using only this method
+   * as to let mixins decorate them
+   */
   execute : function ( commandName, cfg ) {
     if ( typeof cfg != 'Array' )
       cfg = [ cfg ];
@@ -21,46 +26,6 @@ AbstractWatcher.prototype = {
     if ( this.isCommandAvailable( commandName ) )
       this[ "_" + commandName ].apply( this,  cfg );
   },
-
- // watcher.execute( "info" , write );
-    // interface mixin
-
-/*
-  for ( j in commands[command ].mixins ) {
-      var mixin = ...[j];
-      cfg  = mixin.apply( this, cfg );
-
-    }
-  mixin {
-    apply : function ( baseParams ) {
-      // do stuff...
-    }
-  }
-
-  do-restart {
-    apply : function( watcher, baseParams) {
-      var writeOld = baseParams;
-      
-      return function(request) {
-        watcher.start();
-
-        writeOld(request);
-      };
-    }
-  }
-
-  sendemail {
-    apply : function( watcher, baseParams) {
-      var writeOld = baseParams;
-      
-      return function(request) {
-        sendMail();
-
-        writeOld(request);
-      };
-    }
-  }
-*/
 
   isCommandAvailable : function ( name ) {
     var found = false;
