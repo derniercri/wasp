@@ -33,7 +33,7 @@ function WaspWorker( options ) {
   this.watcherTypes = {};
   this.watchers = {};
 
-  this.server = http.createServer(function(req, res) { this.router.serve(req, res); });
+  this.server = http.createServer(function(req, res) { that.router.serve(req, res); });
   this.server.listen(4545);;
 
   this.initRouter();
@@ -50,8 +50,8 @@ WaspWorker.prototype = {
     var that = this;
     this.router = new Router( this );
 
-    this.router.set('', 'Root', function( args ) { that.root( args  ) } );
-    this.router.set('/', 'Root', function( args ) { that.root( args  ) } );
+    this.router.set('', 'Root', function() { that.root( this ); } );
+    this.router.set('/', 'Root', function() { that.root( this ); } );
   },
 
 
@@ -160,11 +160,13 @@ WaspWorker.prototype = {
   /**
    * Called on /
    */
-  root : function() {
+  root : function( params ) {
     var watchers = this.watchers
-      , result = {};
+      , result = {}
+      , req = params["request"]
+      , res = params["response"];
 
-    result['name'] = that.name;
+    result['name'] = this['name'];
     result['watchers'] = {};
     result['timer'] = undefined;
     
@@ -177,8 +179,8 @@ WaspWorker.prototype = {
         result['timer'] = watchers[i]['cfg']['timer'];
     }
 
-    this.response.writeHeader(200);
-    this.response.end(JSON.stringify(result));
+    res.writeHeader(200);
+    res.end(JSON.stringify(result));
   },
 
   /**

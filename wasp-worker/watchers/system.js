@@ -22,7 +22,7 @@ utils.extend( SystemWatcher.prototype, {
     var result = {
       name: "system",
       type: "process",
-      status : "running",
+      status : 1,
       cpu_per: os.loadavg(),
       free_mem: Math.round( os.freemem() / ( 1024 * 1024 ) ),
       mem_per: Math.round( ( os.totalmem() - os.freemem() ) * 100 / os.totalmem() ),

@@ -58,7 +58,9 @@ Router.prototype = {
 
 
   serve : function(request, response) {
-    if ( ! checkAuth( request ) )
+    var routes = this.routes;
+
+    if ( ! this.checkAuth( request ) )
       terminateWith404( response );
 
     for ( route in routes ) {

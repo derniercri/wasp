@@ -2,7 +2,6 @@ var utils = require('./utils.js'),
   http = require('http');
 
 Worker = function ( cfg ) {
-
   this.ip = cfg['ip'];
   this.watchers = {};
   this.status = 0;

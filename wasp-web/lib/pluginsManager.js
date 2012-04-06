@@ -158,6 +158,9 @@ PluginsManager.prototype = {
       , initStack = []
       , counter = scriptsInits.length;
 
+    if ( counter == 0 )
+      done( initStack );
+
     var scriptStacker = function( initScript ) {
       initStack.push( str );
 
