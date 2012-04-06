@@ -1,19 +1,14 @@
 var exec = require('child_process').exec,
-  http = require('http'),
   utils = require('./../lib/utils.js');
 
 require('./../lib/abstract_watcher.js'); 
 
+ProcessWatcher = function() {};
+ProcessWatcher.prototype = new AbstractWatcher();
 
-HttpWatcher = function() {
+utils.extend( ProcessWatcher.prototype, {
+  type : "process",
 
-};
-
-HttpWatcher.prototype = new AbstractWatcher();
-
-
-utils.extend( HttpWatcher.prototype, {
-  type : "http",
   init : function ( name, cfg ) {
     this.name = name;
     this.cfg = cfg;
@@ -39,29 +34,37 @@ utils.extend( HttpWatcher.prototype, {
 
     var reply = {
       name: this.name,
-      type: "http"
-    };
+      type: "process"
+    }; 
+      
+    var pid = "";
 
-    var options = {
-      host: cfg.host,
-      port: cfg.port,
-      path: cfg.path
-    };
+    if ( cfg['pidFile'] )
+      pid =  '`cat '+ cfg['pidFile'] +' `';
+    else
+      pid = cfg['pid'];
 
-    var req = http.get( options, function( res ) {
-      res.on('data', function( rawRes ){
-        reply.status = 1;
-        requestHandler(reply);
-      });
-
-    }).on('close', function( e ) {
-      if ( e === 'timeout' || e === 'aborted' ) {
+    exec( 'ps -o "pid %cpu %mem rss" -p ' + pid + ' |sed 1d',  function ( error, stdout, stderr ) {
+      if ( utils.isEmpty( stdout ) ) {
         reply.status = 0;
-        requestHandler(reply);
+
+        requestHandler( reply );
+        return;
       }
-    })
-    .on('error', function( e ){
-      reply.status = 0;
+
+      var info = stdout.replace('\n','').split(/ +/);
+
+      if( info[0] == '' )
+        info = info.splice(1);
+
+      utils.extend( reply, {
+        pid: info[0],
+        status: 1, 
+        cpu_per: info[1],
+        mem_per: info[2],
+        mem_size: info[3]      
+      });
+        
       requestHandler(reply);
     });
   },
@@ -94,4 +97,6 @@ utils.extend( HttpWatcher.prototype, {
   }
 });
 
-exports = module.exports = HttpWatcher;
+
+// exposing the constructor
+exports = module.exports = ProcessWatcher;

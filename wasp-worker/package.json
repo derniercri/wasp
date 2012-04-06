@@ -17,18 +17,14 @@
 	],
   "repository" : {
     "type" : "git", 
-    "url" : "git@github.com:nectify/wasp-worker.git"
+    "url" : "git@github.com:nectify/wasp.git"
   },
   "bugs" : { 
-    "web" : "http://github.com/nectify/wasp-worker/issues"
+    "url" : "http://github.com/nectify/wasp/issues"
   },
   "os" : [ "linux", "osx" ],
-  "directories" : { 
-    "lib" : "./lib",
-    "core-watchers-lib" : "./core-watchers-lib"
-  }, 
   "engines" : { 
-    "node" : ">=0.4"
+    "node" : ">=0.6"
   },
   "dependencies" : { 
     "redis" : "*", 

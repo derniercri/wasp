@@ -1,22 +1,29 @@
-var utils = require("./utils.js");
+/*!
+ * Wasp
+ * Copyright(c) 2011, 2012 Nectify <dev@nectify.com>
+ * Apache 2.0 Licensed
+ */
 
-var routes = [];
-var authToken = "";
+var utils = require("./utils");
 
+function Router( worker ) {
+  var that = this;
 
-var checkAuth = function ( request ) {
-  //var requestToken = 
-  //return ( requestToken == authToken );
-  return true;
-}
+  this.worker = worker;
+  this.routes = [];
 
-var setAuthToken = function ( token ) {
-  authToken = token;
+  var settings = worker.settings;
+
+  this.authToken = settings['authToken'];
 };
 
-// Route setter
-var set = function (route, routeName, callback) {
-  var paramsNames = [];
+Router.prototype = {
+  checkAuth : function( request ) {
+    return true;
+  },
+
+  set : function (route, routeName, callback) { 
+    var paramsNames = [];
   
   var paramX = route.indexOf( ':' );
   
@@ -37,7 +44,7 @@ var set = function (route, routeName, callback) {
 
   var routeRegExp = new RegExp("^" + route + "$");
   
-  routes.push({
+  this.routes.push({
     route: routeRegExp,
     routeName: routeName,
     paramsNames: paramsNames, 
@@ -47,51 +54,52 @@ var set = function (route, routeName, callback) {
   utils.log('Route added - name: ' + routeName + ' - route pattern:' + route, module);
   
   return this;
-};
+  },
 
-// HTTP server with route matching
-var serve = function(request, response) {
-  if ( ! checkAuth( request ) )
-    terminateWith404( response );
 
-  for ( route in routes ) {
-    var matches = request.url.match( routes[route].route );
-    
-    if ( matches != undefined ) {
-      var paramsNames = routes[route].paramsNames;
-      params = {};
+  serve : function(request, response) {
+    if ( ! checkAuth( request ) )
+      terminateWith404( response );
+
+    for ( route in routes ) {
+      var matches = request.url.match( routes[route].route );
       
-      i = 1;
-      for ( param in paramsNames ) {
-        params[paramsNames[param]] = matches[i];
-        i++;
+      if ( matches != undefined ) {
+        var paramsNames = routes[route].paramsNames;
+        params = {};
+        
+        i = 1;
+        for ( param in paramsNames ) {
+          params[paramsNames[param]] = matches[i];
+          i++;
+        }
+        
+        var o = {
+          params: params,
+          request: request,
+          response: response,
+          routeName : routes[route].routeName
+        };
+
+        routes[route].callback.apply(o);
+        return;
       }
-      
-      var o = {
-        params: params,
-        request: request,
-        response: response,
-        routeName : routes[route].routeName
-      };
-
-      routes[route].callback.apply(o);
-      return;
     }
+
+    // if nothing matched
+    utils.log('no route found for: ' + request.url, module);
+
+    terminateWith404( response );
+  },
+
+  terminateWith404 : function( response ) {
+    response.writeHeader(404, { 'Content-Type': "text/plain" }); 
+    response.end("404 not found");
   }
-
-  // if nothing matched
-  utils.log('no route found for: ' + request.url, module);
-
-  terminateWith404( response );
 };
 
-var terminateWith404 = function( response ) {
-  response.writeHeader(404, { 'Content-Type': "text/plain" }); 
-  response.end("404 not found");
-}
 
-
-// exports
-exports.set = set;
-exports.serve = serve;
-exports.setAuthToken = setAuthToken;
+/**
+ * Export the constructor.
+ */
+exports = module.exports = Router;

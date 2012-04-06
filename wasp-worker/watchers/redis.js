@@ -7,9 +7,7 @@ require('./process.js');
 
 
 
-RedisWatcher = function() {
-};
-
+RedisWatcher = function() {};
 RedisWatcher.prototype = new ProcessWatcher();
 
 

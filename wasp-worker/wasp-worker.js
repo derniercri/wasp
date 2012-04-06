@@ -1,165 +1,246 @@
-var utils = require('./lib/utils.js'),
-  consts = require('./lib/consts.js'),
-  http = require('http'),
-  system = require('./core-watchers-lib/unix_system.js'),
-  redis = require('redis'),
-  router = require('./lib/router.js');
-
-var watcherTypes = {},
-  watchers = {},
-  server = {},
-  redisCli;
-
-var rSafe = function( str ) {
-  if ( ! str )
-    return; 
-
-  return str.replace(/ /g, '_');
-};
-
-/**
- * Register a new type of watchers
+/*!
+ * Wasp
+ * Copyright(c) 2011, 2012 Nectify <dev@nectify.com>
+ * Apache 2.0 Licensed
  */
-exports.registerWatcherType = function( watcher ) {
-  utils.log( "Registering Watcher: " + watcher , module);
 
-  var watcherType = require( watcher );
-
-  watcherTypes[ watcherType.prototype.type ] = watcherType;
-}
-
-// Root : Return all processes in JSON
-var root = function() {
-  var result = {};
-
-  result['name'] = server['name'];
-  result['watchers'] = {};
-  result['timer'] = undefined;
-  
-  for ( i in watchers ) {
-    result['watchers'][i] = {};
-    result['watchers'][i]['type'] = watchers[i]['type'];
-    result['watchers'][i]['timer'] = watchers[i]['cfg']['timer'];
-
-    if ( result[''] == undefined || result['timer'] < watchers[i]['cfg']['timer'] )
-      result['timer'] = watchers[i]['cfg']['timer'];
-  }
-
-  this.response.writeHeader(200);
-  this.response.end(JSON.stringify(result));
-};
-
-var registerCommand = function( watcherName, cmdName ) {
-  router.set(
-    '/' + watcherName + '/' + cmdName, watcherName + "-" + cmdName, 
-    function() {
-      var that = this;
-
-      var watcher = watchers[ watcherName ];
-
-      watcher.execute( cmdName, function ( reply ) {
-        that.response.writeHeader(200);
-        that.response.end(JSON.stringify( reply ));
-      });
-    }
-  );
-}
+var utils = require('./lib/utils')
+  , consts = require('./lib/consts')
+  , http = require('http')
+  , Logger = require('./lib/logger')
+  , libRedis = require('redis')
+  , os = require('os')
+  , Router = require('./lib/router');
 
 
-var write = function( report ){
+function WaspWorker( options ) {
   var that = this;
 
-  redisCli.incr(
-    consts.REDIS_PREFIX + 'reports_id', 
-    function( error, reply ) {
-      
-      redisCli.set( 
-        consts.REDIS_PREFIX + 'reports:' + rSafe( server['name'] ) + ':' + rSafe( report['name'] ), 
-        reply
-      );
+  var defaults = {
+    "log_level" : 4,
+    "port" : consts[ 'SERVER_PORT' ],
+    "defaultTimer" : 30000
+  };
 
-      redisCli.expire(
-        consts.REDIS_PREFIX + 'reports:' + rSafe( server['name'] ) + ':' + rSafe( report['name'] ), 
-        86400
-      );
+  var settings = this.settings = utils.extend( defaults, options );
 
-      redisCli.set(
-        consts.REDIS_PREFIX + 'full_reports:' + reply, 
-        JSON.stringify(report)
-      );
+  var $l = this.logger = new Logger( this.settings['log_level'] );
 
-      redisCli.expire(
-        consts.REDIS_PREFIX + 'full_reports:' + reply, 
-        86400
-      );
+  this.initRedis();
+  
+  this.name = settings['server']['name'];
 
-      utils.log( consts.REDIS_PREFIX + 'reports:' + rSafe( server['name'] ) + ':' + rSafe( report['name'] ) , module);
-      utils.log('Reply ID:'+ reply +' > ' + JSON.stringify(report) , module);
-  });
+  this.watcherTypes = {};
+  this.watchers = {};
+
+  this.server = http.createServer(function(req, res) { this.router.serve(req, res); });
+  this.server.listen(4545);;
+
+  this.initRouter();
+
+  this.initWatchers();
 };
 
+WaspWorker.prototype = {
 
-var startMonitor = function( watcher ) {
-  setInterval( 
-    function() {
-      watcher.execute( "info" , write );
-    }, 
-    watcher.cfg.timer
-  );  
-}
+  /**
+   * init the router
+   */
+  initRouter : function() {
+    var that = this;
+    this.router = new Router( this );
 
-
-exports.start = function(config){
-  // start redis
-  redisCli = redis.createClient( config['redis']['port'], config['redis']['host'] );
-  redisCli.on("error", function (err){
-    console.log("Error connecting Redis Client" + err, module);
-  });
-  
-  // Parse watcherType
-  watchersCfg = config['watchers'];
-  server = config['server'];
+    this.router.set('', 'Root', function( args ) { that.root( args  ) } );
+    this.router.set('/', 'Root', function( args ) { that.root( args  ) } );
+  },
 
 
-  router.setAuthToken( config['authToken'] );
+  /**
+   * init redis
+   */
+  initRedis : function() {
+    var settings = this.settings;
 
-  // root route
-  router.set('', 'Root', root);
-  router.set('/', 'Root', root);
+    this.redis = libRedis.createClient( settings['redis']['port'], settings['redis']['host'] );
+    this.redis.on("error", function (err){
+      $l.error("Redis error" + err, module);
+    });
+  },
 
-  // Initialize REST routes for each watcher and their associated commands
-  // and also start monitoring
-  for ( var name in watchersCfg ){
-    var watcherCfg = watchersCfg[name],
-      type = watcherCfg.type;
 
-    if ( ! type || ! watcherTypes[type] ) {
-      utils.log("Error: can't register this watcher: " + name + " because the associated watcher type hasn't been registred, see registerWatcherType()" , module);
-      continue;
+  /**
+   * init watchers
+   */
+  initWatchers : function() {
+    var settings = this.settings
+      , watchers = this.watchers
+      , $l = this.logger;
+    
+    // Initialize REST routes for each watcher and their associated commands
+    // and also start monitoring
+    for ( var name in settings['watchers'] ) {
+      var watcherSettings = settings['watchers'][ name ];
+
+      var watcher = this.createWatcher( watcherSettings );
+
+      if ( ! watcher )
+          continue;
+
+      watcher.init(name, watcherSettings);
+
+      for ( i in watcher.commands ) {
+        this.registerCommand( watcher.name , watcher.commands[ i ] );
+      }
+
+      utils.log( 'Routes created for watcher:' + watcher.name , module );
+
+      watchers[ watcher.name ] = watcher;
+
+      this.startMonitor( watcher );
+
+      utils.log( 'Monitoring started for watcher:' + watcher.name, module );
+    }
+  },
+
+
+  createWatcher : function( wSettings ) {
+     var type = wSettings['type']
+      , $l = this.logger;
+
+    if ( ! type ) {
+      $l.error("Watcher type is undefined. Add the \"type\" property to your watcher declaration" , module);
+      return;
     }
 
-    if ( ! watcherCfg.timer ) {
-      utils.log("Error: watcher: " + name + " has no associated monitoring timer", module);
+
+    if ( ! wSettings["timer"] )
+      wSettings["timer"] = this.settings["defaultTimer"];
+
+    var wClass;
+    try { // first try, global watchers look up
+      wClass = require( "wasp-worker-plugin-" + type );
+    }
+    catch( e ) {
+      try { // second try, local lookup (included watchers)
+        wClass = require( "./watchers/" + type );
+      }
+      catch( wClassNotFoundException ) {
+        $l.error("Watcher: \"" + type + "\" not found. Have you installed it?", module);
+        return;
+      }
     }
 
-    var watcher = new watcherTypes[type]();
-    watcher.init(name, watcherCfg);
+    return new wClass( wSettings );
+  },
 
-    for ( i in watcher.commands ) {
-      registerCommand( watcher.name , watcher.commands[ i ] );
+
+  /**
+   * Register a new command
+   */
+  registerCommand : function( watcherName, cmdName ) {
+    var that = this
+      , watchers = this.watchers;
+
+    this.router.set(
+      '/' + watcherName + '/' + cmdName, watcherName + "-" + cmdName, 
+      function() {
+        
+
+        var watcher = watchers[ watcherName ];
+
+        watcher.execute( cmdName, function ( reply ) {
+          that.response.writeHeader(200);
+          that.response.end(JSON.stringify( reply ));
+        });
+      }
+    );
+  },
+
+
+  /**
+   * Called on /
+   */
+  root : function() {
+    var watchers = this.watchers
+      , result = {};
+
+    result['name'] = that.name;
+    result['watchers'] = {};
+    result['timer'] = undefined;
+    
+    for ( i in watchers ) {
+      result['watchers'][i] = {};
+      result['watchers'][i]['type'] = watchers[i]['type'];
+      result['watchers'][i]['timer'] = watchers[i]['cfg']['timer'];
+
+      if ( result[''] == undefined || result['timer'] < watchers[i]['cfg']['timer'] )
+        result['timer'] = watchers[i]['cfg']['timer'];
     }
 
-    utils.log( 'Routes created for watcher:' + watcher.name , module );
+    this.response.writeHeader(200);
+    this.response.end(JSON.stringify(result));
+  },
 
-    watchers[ watcher.name ] = watcher;
+  /**
+   * Start to monitor a watcher
+   */
+  startMonitor : function( watcher ) {
+    var that = this;
 
-    startMonitor( watcher );
+    setInterval( 
+      function() {
+        watcher.execute( "info" , function( report ) { that.write( report ); } );
+      }, 
+      watcher.cfg.timer
+    );  
+  },
 
-    utils.log( 'Monitoring started for watcher:' + watcher.name, module );
 
+  /**
+   * Output to redis
+   */
+  write : function( report ){
+    var that = this
+      , redis = this.redis;
+
+    redis.incr(
+      consts.REDIS_PREFIX + 'reports_id', 
+      function( error, reply ) {
+        
+        redis.set( 
+          consts.REDIS_PREFIX + 'reports:' + that._rSafe( that.name ) + ':' + that._rSafe( report['name'] ), 
+          reply
+        );
+
+        redis.expire(
+          consts.REDIS_PREFIX + 'reports:' + that._rSafe( that.name ) + ':' + that._rSafe( report['name'] ), 
+          86400
+        );
+
+        redis.set(
+          consts.REDIS_PREFIX + 'full_reports:' + reply, 
+          JSON.stringify(report)
+        );
+
+        redis.expire(
+          consts.REDIS_PREFIX + 'full_reports:' + reply, 
+          86400
+        );
+
+        utils.log( consts.REDIS_PREFIX + 'reports:' + that._rSafe( that.name ) + ':' + that._rSafe( report['name'] ) , module);
+        utils.log('Reply ID:'+ reply +' > ' + JSON.stringify(report) , module);
+    });
+  },
+
+  _rSafe : function( str ) {
+    if ( ! str )
+      return; 
+
+    return str.replace(/ /g, '_');
   }
 };
 
-// Starting HTTP server
-server = http.createServer(router.serve);
-server.listen(4545);
+
+exports.start = function( settings ) {
+  var waspWorker = new WaspWorker( settings );
+};

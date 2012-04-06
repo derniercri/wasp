@@ -10,7 +10,6 @@ var extend = function(target, object) {
 };
 
 
-
 var isEmpty = function(  str ) {
   return str == undefined || trim( str ) == '';
 }

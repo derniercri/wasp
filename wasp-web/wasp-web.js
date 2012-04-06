@@ -30,10 +30,6 @@ function WaspWeb( options ) {
 
   $l = this.logger = new Logger( this.settings['log_level'] );
 
-  $l.log("-");
-  $l.log("-");
-  $l.log("-");
-
   this.redis = libRedis.createClient( settings['redis']['port'], settings['redis']['host'] );
 
   this.pluginsManager = new PluginsManager( this );

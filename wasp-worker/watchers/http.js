@@ -1,19 +1,16 @@
 var exec = require('child_process').exec,
-  utils = require('./../lib/utils.js');
+  http = require('http'),
+  utils = require('./../lib/utils');
 
-require('./../lib/abstract_watcher.js'); 
-
-
-ProcessWatcher = function() {
-
-};
-
-ProcessWatcher.prototype = new AbstractWatcher();
+require('./../lib/abstract_watcher'); 
 
 
-utils.extend( ProcessWatcher.prototype, {
-  type : "process",
+HttpWatcher = function() {};
+HttpWatcher.prototype = new AbstractWatcher();
 
+
+utils.extend( HttpWatcher.prototype, {
+  type : "http",
   init : function ( name, cfg ) {
     this.name = name;
     this.cfg = cfg;
@@ -39,37 +36,29 @@ utils.extend( ProcessWatcher.prototype, {
 
     var reply = {
       name: this.name,
-      type: "process"
-    }; 
-      
-    var pid = "";
+      type: "http"
+    };
 
-    if ( cfg['pidFile'] )
-      pid =  '`cat '+ cfg['pidFile'] +' `';
-    else
-      pid = cfg['pid'];
+    var options = {
+      host: cfg.host,
+      port: cfg.port,
+      path: cfg.path
+    };
 
-    exec( 'ps -o "pid %cpu %mem rss" -p ' + pid + ' |sed 1d',  function ( error, stdout, stderr ) {
-      if ( utils.isEmpty( stdout ) ) {
-        reply.status = 0;
-
-        requestHandler( reply );
-        return;
-      }
-
-      var info = stdout.replace('\n','').split(/ +/);
-
-      if( info[0] == '' )
-        info = info.splice(1);
-
-      utils.extend( reply, {
-        pid: info[0],
-        status: 1, 
-        cpu_per: info[1],
-        mem_per: info[2],
-        mem_size: info[3]      
+    var req = http.get( options, function( res ) {
+      res.on('data', function( rawRes ){
+        reply.status = 1;
+        requestHandler(reply);
       });
-        
+
+    }).on('close', function( e ) {
+      if ( e === 'timeout' || e === 'aborted' ) {
+        reply.status = 0;
+        requestHandler(reply);
+      }
+    })
+    .on('error', function( e ){
+      reply.status = 0;
       requestHandler(reply);
     });
   },
@@ -102,6 +91,4 @@ utils.extend( ProcessWatcher.prototype, {
   }
 });
 
-
-// exposing the constructor
-exports = module.exports = ProcessWatcher;
+exports = module.exports = HttpWatcher;
