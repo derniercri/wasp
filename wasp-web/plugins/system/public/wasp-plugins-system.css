@@ -9,8 +9,10 @@
 }
 
 .system .host {
-  font-size: 24px;
+  font-size: 20px;
   margin-top: 10px;
+  overflow: hidden;
+
 }
 
 .system .cpu {
