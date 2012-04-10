@@ -130,7 +130,7 @@ PluginsManager.prototype = {
       , $l = this.logger;
 
     if ( includedTemplates[ id ] ) {
-      $l.error("Template Conflict: this id is already taken: " + path, module);
+      $l.error("Template Conflict: this id is already taken: " + id, module);
       return;
     }
 
