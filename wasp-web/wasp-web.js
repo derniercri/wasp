@@ -31,6 +31,9 @@ function WaspWeb( options ) {
   $l = this.logger = new Logger( this.settings['log_level'] );
 
   this.redis = libRedis.createClient( settings['redis']['port'], settings['redis']['host'] );
+  this.redis.on("error", function( err ) {
+    $l.error("Redis error:" + err );
+  });
 
   this.pluginsManager = new PluginsManager( this );
   this.applicationController = new ApplicationController( this.redis, this.pluginsManager );

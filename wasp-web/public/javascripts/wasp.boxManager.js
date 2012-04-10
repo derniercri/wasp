@@ -18,7 +18,7 @@ BoxManager.prototype = {
     this.pluginsContainer = $('#plugins');
   },
 
-  newBox : function( templateId ) {
+  newBox : function() {
     var boxId = "box-" + this.boxIdIncr++;
     var $box = $.mustachize('box', { id: boxId });
 

@@ -15,10 +15,10 @@ MonitoredObject.prototype = {
    * initialize a new monitored object with an id and its status data
    * status data is like
    */
-  init : function( id, props ) {
+  init : function( id, report ) {
     this.id = id;
 
-    this.update( props );
+    this.update( report );
 
     this.render();
   },
@@ -107,32 +107,43 @@ MonitoredObject.prototype = {
       this.focus();
   },
 
+  /**
+   * returns the status
+   */
+  status : function() {
+    return this.data['status'];
+  },
+
 
   /**
    *  update a monitored object data with its status data
    */
-  update : function( props ) {
-    if ( ! props )
-      return; 
+  update : function( report ) {
+    if ( ! report )
+      return;
+
+    this.report = report;
 
     if ( ! this.data )
       this.data = {};
 
+    this.data = report;
+
     // if no host is specified then we are showing a worker
-    this.data['hostname'] = props['hostname']; // ? props['hostname'] : "W: " + this.id;
+    this.data['hostname'] = report['hostname']; // ? report['hostname'] : "W: " + this.id;
 
     // if no host is specified then we are showing a worker
     if ( this.data['hostname'] ) {
-      this.data['name'] = props['name'];
+      this.data['name'] = report['name'];
     }
     else {
-      if ( props['name'] ) // worker is up, then we 
-        this.data['name'] = props['name'] + "@" + this.id ;
+      if ( report['name'] ) // worker is up, then we 
+        this.data['name'] = report['name'] + "@" + this.id ;
       else
         this.data['name'] = "@" + this.id;
     }
 
-    this.updateStatus( props['status'] )
+    this.updateStatus( report['status'] )
   },
 
   /**
@@ -181,15 +192,24 @@ monitoredObjectsManager: {
   events: {},
 
   /**
-   * id, (optional: props )
-   * returns the monitored Object corresponding to the given id
+   * returns the monitored object for the given id
    */
-  findOrCreate : function( id, props ) {
+  find : function( id ) {
+    var mos = $w.monitoredObjectsManager.monitoredObjects;
+  
+    return mos[id];
+  },
+
+  /**
+   * id, (optional: report )
+   * returns the monitored object for the given id
+   */
+  findOrCreate : function( id, report ) {
     var mos = $w.monitoredObjectsManager.monitoredObjects;
 
     if ( id in mos ) {
-      if ( props ) {
-        mos[id].update( props );
+      if ( report ) {
+        mos[id].update( report );
         mos[id].render();
       }
       
@@ -201,7 +221,7 @@ monitoredObjectsManager: {
     mo.on("statusChanged", $w.monitoredObjectsManager.updateGlobalStatus );
     mos[id] = mo;  
 
-    mo.init( id , props );    
+    mo.init( id , report );    
 
     return mo;
   },

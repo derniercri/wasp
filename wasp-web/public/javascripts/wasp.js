@@ -4,7 +4,12 @@ var wasp = $w = {};
 
 $.extend( wasp, 
 {
-  /**pack
+  /**
+   * just a namespace that plugins should use to reference their functions
+   */
+  plugins : {},
+
+  /**
    * On page load, we delay the WASP loading to avoid the infinite page loading effect
    */
   init : function() {
@@ -13,7 +18,6 @@ $.extend( wasp,
     $w.messagePanel.error("Wasp web dashboard started");
 
     setInterval( $w.refresh, 3000 );
-
 
     $w.boxIdIncr = 0;
 
@@ -49,8 +53,8 @@ $.extend( wasp,
     events[ eventName ].push( callback );
   },
 
-  newBox : function( templateId ) {
-    return $w.boxManager.newBox( templateId );
+  newBox : function() {
+    return $w.boxManager.newBox();
   },
 
   /**
@@ -102,6 +106,8 @@ $.extend( wasp,
 
       // TODO  : delete removed watchers in case of a daemon restart.
     }
+    
+    $w.fire("refresh");
   }
 });
 

@@ -6,7 +6,7 @@ var pad2 = function( nb ) {
 }
 
 $w.on('load', function() {
-  var calendarBoxId = $w.newBox("calendar")
+  var calendarBoxId = $w.newBox()
     , $calendar = $("#" + calendarBoxId );
 
   setInterval(

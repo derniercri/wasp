@@ -49,6 +49,7 @@ ApplicationController.prototype = {
 
           var workerIp = worker['ip'];
 
+          response[ workerIp ]['watchers'][ watcherName ] = fullReport;
           response[ workerIp ]['watchers'][ watcherName ]['status'] = status;
           response[ workerIp ]['watchers'][ watcherName ]['name'] = watcherName;
           response[ workerIp ]['watchers'][ watcherName ]['type'] = "";

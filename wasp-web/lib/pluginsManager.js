@@ -162,7 +162,7 @@ PluginsManager.prototype = {
       done( initStack );
 
     var scriptStacker = function( initScript ) {
-      initStack.push( str );
+      initStack.push( initScript );
 
       if( --counter == 0 ) {
           done( initStack );

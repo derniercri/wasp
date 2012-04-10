@@ -1,0 +1,32 @@
+.system {
+  text-align: center;
+}
+
+.system h2 {
+  margin-top: 20px;
+  color: #cccccc;
+  font-size: 40px;
+}
+
+.system .host {
+  font-size: 24px;
+  margin-top: 10px;
+}
+
+.system .cpu {
+  margin-top: 30px;
+}
+
+.system .mem {
+}
+
+.system .mem, 
+.system .cpu {
+  font-size: 32px;
+  color: #cccccc;
+}
+
+.system .mem_usage,
+.system .cpu_usage {
+  color: #ffffff;
+}

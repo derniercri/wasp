@@ -1,0 +1,6 @@
+<div class="system">
+<div class="host">{{name}}</div>
+<h2>System usage</h2>
+<div class="cpu">CPU Load: <span class="cpu_usage">{{cpu}}</span>%</div>
+<div class="mem">Memory : <span class="mem_usage">{{mem}}</span>%</div>
+</div>
